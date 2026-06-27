@@ -29,6 +29,37 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
+## Push to GitHub
+
+```bash
+git add .
+git commit -m "your message"
+git push origin main
+```
+
+## Adding a New Blog Post
+
+Create a new `.mdx` file in `content/posts/` with frontmatter:
+
+```mdx
+---
+title: "Your Post Title"
+slug: "your-post-title"
+date: "2026-06-27"
+excerpt: "A short summary of the post."
+category: "budgeting"
+tags: ["tag1", "tag2"]
+coverImage: "/images/og-default.jpg"
+author: "Lean Wealth Team"
+featured: false
+published: true
+---
+
+Your markdown content here...
+```
+
+The post will appear on the site automatically after pushing.
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
