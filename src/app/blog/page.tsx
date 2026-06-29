@@ -4,6 +4,8 @@ import PostCard from "@/components/blog/PostCard";
 import SearchBar from "@/components/blog/SearchBar";
 import CategoryFilter from "@/components/blog/CategoryFilter";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Blog",
   description:

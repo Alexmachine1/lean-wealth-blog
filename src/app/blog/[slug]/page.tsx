@@ -8,12 +8,8 @@ import ReadingProgressBar from "@/components/blog/ReadingProgressBar";
 import SocialShare from "@/components/blog/SocialShare";
 import AuthorBio from "@/components/blog/AuthorBio";
 import RelatedPosts from "@/components/blog/RelatedPosts";
-import CommentSection from "@/components/ui/CommentSection";
 
-export async function generateStaticParams() {
-  const posts = getAllPosts();
-  return posts.map((post) => ({ slug: post.frontmatter.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -98,8 +94,6 @@ export default async function BlogPostPage({
           <div className="mt-12">
             <RelatedPosts currentSlug={frontmatter.slug} />
           </div>
-
-          <CommentSection />
         </div>
       </article>
     </>

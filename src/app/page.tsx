@@ -5,6 +5,8 @@ import NewsletterSignup from "@/components/home/NewsletterSignup";
 import CategoryHighlights from "@/components/home/CategoryHighlights";
 import { getAllPosts } from "@/lib/posts";
 
+export const dynamic = "force-dynamic";
+
 export default function HomePage() {
   const posts = getAllPosts();
 
