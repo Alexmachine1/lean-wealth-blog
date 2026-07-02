@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 
+const FORM_ID = "9637547";
+
 export async function POST(request: Request) {
-  const formId = process.env.CONVERTKIT_FORM_ID;
-  if (!formId) {
+  const apiSecret = process.env.CONVERTKIT_API_SECRET;
+  if (!apiSecret) {
     return NextResponse.json({ error: "Server not configured" }, { status: 500 });
   }
 
@@ -12,20 +14,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    const params = new URLSearchParams({ email_address: email });
-
-    const res = await fetch(`https://app.convertkit.com/forms/${formId}/subscribe`, {
+    const res = await fetch(`https://api.kit.com/v3/forms/${FORM_ID}/subscribe`, {
       method: "POST",
-      body: params,
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ api_secret: apiSecret, email }),
     });
 
-    if (res.ok || res.status === 302) {
+    if (res.ok) {
       return NextResponse.json({ ok: true });
     }
 
     const text = await res.text();
-    console.error("ConvertKit error:", res.status, text);
+    console.error("Kit API error:", res.status, text);
     return NextResponse.json({ error: "Subscription failed" }, { status: res.status });
   } catch {
     return NextResponse.json({ error: "Failed to subscribe" }, { status: 500 });
