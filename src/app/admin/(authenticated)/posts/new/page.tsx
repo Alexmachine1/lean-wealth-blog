@@ -67,9 +67,9 @@ export default function NewPostPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-57px)] bg-[#f0f0f1]">
+    <div className="min-h-[calc(100vh-57px)] bg-background">
       <form onSubmit={handleSubmit}>
-        <div className="sticky top-[57px] z-40 border-b border-border bg-white px-4 py-3">
+        <div className="sticky top-[57px] z-40 border-b border-border bg-surface px-4 py-3">
           <div className="mx-auto flex max-w-6xl items-center justify-between">
             <h1 className="text-lg font-semibold text-foreground">New Post</h1>
             <div className="flex items-center gap-3">
@@ -100,10 +100,10 @@ export default function NewPostPage() {
                 onChange={(e) => handleTitleChange(e.target.value)}
                 placeholder="Add title"
                 required
-                className="block w-full border-0 border-b-2 border-transparent bg-white px-4 py-3 text-2xl font-bold text-foreground placeholder:text-muted/50 outline-none focus:border-primary focus:ring-0"
+                className="block w-full border-0 border-b-2 border-transparent bg-surface px-4 py-3 text-2xl font-bold text-foreground placeholder:text-muted/50 outline-none focus:border-primary focus:ring-0"
               />
 
-              <div className="rounded-xl border border-border bg-white p-1">
+              <div className="rounded-xl border border-border bg-surface p-1">
                 <MarkdownEditor
                   value={form.content}
                   onChange={(val) =>
@@ -115,7 +115,7 @@ export default function NewPostPage() {
             </div>
 
             <div className="w-full shrink-0 space-y-4 lg:w-72">
-              <div className="rounded-xl border border-border bg-white p-4">
+              <div className="rounded-xl border border-border bg-surface p-4">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
                   Publish
                 </h3>
@@ -151,7 +151,7 @@ export default function NewPostPage() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border bg-white p-4">
+              <div className="rounded-xl border border-border bg-surface p-4">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
                   Post Settings
                 </h3>
@@ -239,7 +239,7 @@ export default function NewPostPage() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border bg-white p-4">
+              <div className="rounded-xl border border-border bg-surface p-4">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
                   Cover Image
                 </h3>
@@ -269,7 +269,7 @@ export default function NewPostPage() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border bg-white p-4">
+              <div className="rounded-xl border border-border bg-surface p-4">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
                   Excerpt
                 </h3>
