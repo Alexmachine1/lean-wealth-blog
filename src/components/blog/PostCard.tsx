@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Post } from "@/lib/posts";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getImageUrl } from "@/lib/utils";
 
 export default function PostCard({ post }: { post: Post }) {
   const { frontmatter } = post;
@@ -11,7 +11,7 @@ export default function PostCard({ post }: { post: Post }) {
         {frontmatter.coverImage && (
           <div className="aspect-[16/9] overflow-hidden rounded-t-xl">
             <img
-              src={frontmatter.coverImage}
+              src={getImageUrl(frontmatter.coverImage)}
               alt={frontmatter.title}
               className="h-full w-full object-cover transition-transform group-hover:scale-105"
             />

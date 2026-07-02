@@ -19,3 +19,12 @@ export function slugify(text: string) {
     .replace(/\s+/g, "-")
     .replace(/[^\w-]+/g, "");
 }
+
+export function getImageUrl(url: string): string {
+  if (!url) return "";
+  const match = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if (match) {
+    return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1200`;
+  }
+  return url;
+}

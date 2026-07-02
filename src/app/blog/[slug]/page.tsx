@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllPosts, getPostBySlug } from "@/lib/posts";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getImageUrl } from "@/lib/utils";
 import MdxContent from "@/components/blog/MdxContent";
 import TableOfContents from "@/components/blog/TableOfContents";
 import ReadingProgressBar from "@/components/blog/ReadingProgressBar";
@@ -76,7 +76,7 @@ export default async function BlogPostPage({
             {frontmatter.coverImage && (
               <div className="mt-6 aspect-[16/9] overflow-hidden rounded-xl">
                 <img
-                  src={frontmatter.coverImage}
+                  src={getImageUrl(frontmatter.coverImage)}
                   alt={frontmatter.title}
                   className="h-full w-full object-cover"
                 />
