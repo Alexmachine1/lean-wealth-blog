@@ -73,6 +73,16 @@ export default async function BlogPostPage({
               </p>
             )}
 
+            {frontmatter.coverImage && (
+              <div className="mt-6 aspect-[16/9] overflow-hidden rounded-xl">
+                <img
+                  src={frontmatter.coverImage}
+                  alt={frontmatter.title}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
+
             <div className="mt-6">
               <SocialShare title={frontmatter.title} slug={frontmatter.slug} />
             </div>
