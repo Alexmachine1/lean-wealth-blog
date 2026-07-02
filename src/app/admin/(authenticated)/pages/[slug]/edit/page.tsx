@@ -55,58 +55,59 @@ export default function EditPagePage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+      <div className="flex min-h-[calc(100vh-57px)] items-center justify-center bg-[#f0f0f1]">
         <p className="text-muted">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-foreground">Edit: {title}</h1>
-      <p className="mt-1 text-sm text-muted">/{slug}</p>
-
-      <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-foreground">
-            Page Title
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-foreground placeholder:text-muted focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-            required
-          />
+    <div className="min-h-[calc(100vh-57px)] bg-[#f0f0f1]">
+      <form onSubmit={handleSubmit}>
+        <div className="sticky top-[57px] z-40 border-b border-border bg-white px-4 py-3">
+          <div className="mx-auto flex max-w-6xl items-center justify-between">
+            <h1 className="text-lg font-semibold text-foreground">
+              Edit Page
+            </h1>
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-muted">/{slug}</p>
+              {error && <p className="text-sm text-red-500">{error}</p>}
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-primary-dark disabled:opacity-50"
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
+              <a
+                href="/admin/pages"
+                className="text-sm text-muted hover:text-foreground transition-colors"
+              >
+                Cancel
+              </a>
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Content (Markdown)
-          </label>
-          <MarkdownEditor
-            value={content}
-            onChange={(val) => setContent(val || "")}
-            height={600}
-          />
-        </div>
+        <div className="mx-auto max-w-4xl px-4 py-6">
+          <div className="space-y-5">
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Page title"
+              required
+              className="block w-full border-0 border-b-2 border-transparent bg-white px-4 py-3 text-2xl font-bold text-foreground placeholder:text-muted/50 outline-none focus:border-primary focus:ring-0"
+            />
 
-        {error && <p className="text-sm text-red-500">{error}</p>}
-
-        <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-lg bg-primary px-6 py-2 text-sm font-semibold text-white transition-all hover:bg-primary-dark disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Save Changes"}
-          </button>
-          <a
-            href="/admin/pages"
-            className="text-sm text-muted hover:text-foreground transition-colors"
-          >
-            Cancel
-          </a>
+            <div className="rounded-xl border border-border bg-white p-1">
+              <MarkdownEditor
+                value={content}
+                onChange={(val) => setContent(val || "")}
+                height={600}
+              />
+            </div>
+          </div>
         </div>
       </form>
     </div>

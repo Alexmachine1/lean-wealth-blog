@@ -12,8 +12,11 @@ const MDEditor = dynamic(
 
 export default function MarkdownEditor(props: MDEditorProps) {
   return (
-    <div data-color-mode="light">
-      <MDEditor {...props} />
+    <div data-color-mode="light" className="w-full">
+      <MDEditor
+        visibleDragbar={false}
+        {...props}
+      />
     </div>
   );
 }
