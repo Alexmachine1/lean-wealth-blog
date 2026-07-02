@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import type { MDEditorProps } from "@uiw/react-md-editor";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
+import { useTheme } from "./ThemeProvider";
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor").then((mod) => mod.default),
@@ -11,8 +12,10 @@ const MDEditor = dynamic(
 );
 
 export default function MarkdownEditor(props: MDEditorProps) {
+  const { theme } = useTheme();
+
   return (
-    <div data-color-mode="light" className="w-full">
+    <div data-color-mode={theme} className="w-full">
       <MDEditor
         visibleDragbar={false}
         {...props}
