@@ -11,7 +11,7 @@ export default function NewsletterSignup() {
         </p>
         <form
           className="mt-6 flex flex-col gap-3 sm:flex-row"
-          action="https://app.convertkit.com/forms/your-form-id/subscribe"
+          action={`https://app.convertkit.com/forms/${process.env.NEXT_PUBLIC_CONVERTKIT_FORM_ID}/subscribe`}
           method="POST"
           target="_blank"
         >
