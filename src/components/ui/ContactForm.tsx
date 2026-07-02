@@ -10,11 +10,17 @@ export default function ContactForm() {
     e.preventDefault();
     setError("");
 
+    const formId = process.env.NEXT_PUBLIC_FORMSPREE_ID;
+    if (!formId) {
+      setError("Form is not configured. Please set NEXT_PUBLIC_FORMSPREE_ID.");
+      return;
+    }
+
     const form = e.currentTarget;
     const data = new FormData(form);
 
     try {
-      const res = await fetch(`https://formspree.io/f/${process.env.NEXT_PUBLIC_FORMSPREE_ID}`, {
+      const res = await fetch(`https://formspree.io/f/${formId}`, {
         method: "POST",
         body: data,
         headers: { Accept: "application/json" },
@@ -23,10 +29,11 @@ export default function ContactForm() {
       if (res.ok) {
         setSubmitted(true);
       } else {
-        setError("Something went wrong. Please try again or email us directly.");
+        const text = await res.text();
+        setError(`Form submission failed (${res.status}). Please try again or email us directly.`);
       }
     } catch {
-      setError("Something went wrong. Please try again or email us directly.");
+      setError("Network error. Please try again or email us directly.");
     }
   }
 
