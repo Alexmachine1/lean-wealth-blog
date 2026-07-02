@@ -24,7 +24,13 @@ export default async function AuthenticatedLayout({
               href="/admin"
               className="text-sm text-muted hover:text-foreground transition-colors"
             >
-              Dashboard
+              Posts
+            </a>
+            <a
+              href="/admin/pages"
+              className="text-sm text-muted hover:text-foreground transition-colors"
+            >
+              Pages
             </a>
             <a
               href="/"
