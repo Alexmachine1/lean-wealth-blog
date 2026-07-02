@@ -5,7 +5,7 @@ import matter from "gray-matter";
 function loadEnv() {
   const envPath = path.join(process.cwd(), ".env.local");
   if (!fs.existsSync(envPath)) {
-    console.error("❌ .env.local not found. Create it with TURSO_DATABASE_URL and TURSO_AUTH_TOKEN.");
+    console.error("❌ .env.local not found. Create it with DATABASE_URL and DATABASE_AUTH_TOKEN.");
     process.exit(1);
   }
   const content = fs.readFileSync(envPath, "utf8");
@@ -29,8 +29,8 @@ async function main() {
   const { createClient } = await import("@libsql/client");
 
   const db = createClient({
-    url: process.env.TURSO_DATABASE_URL!,
-    authToken: process.env.TURSO_AUTH_TOKEN!,
+    url: process.env.DATABASE_URL!,
+    authToken: process.env.DATABASE_AUTH_TOKEN!,
   });
 
   console.log("✅ Connected to Turso");
