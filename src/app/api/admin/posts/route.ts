@@ -1,39 +1,18 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
+import { db } from "@/lib/db";
 import { checkAuth } from "@/lib/admin";
 
-const postsDirectory = path.join(process.cwd(), "content", "posts");
-
-interface PostData {
+interface PostRow {
+  slug: string;
   title: string;
   date: string;
   excerpt: string;
   category: string;
-  tags: string[];
+  tags: string;
   coverImage: string;
   author: string;
-  featured: boolean;
-  published: boolean;
-  slug: string;
-}
-
-function ensureDir() {
-  if (!fs.existsSync(postsDirectory)) {
-    fs.mkdirSync(postsDirectory, { recursive: true });
-  }
-}
-
-function readAllPosts(): PostData[] {
-  ensureDir();
-  const slugs = fs.readdirSync(postsDirectory);
-  return slugs.map((slug) => {
-    const filePath = path.join(postsDirectory, slug);
-    const source = fs.readFileSync(filePath, "utf8");
-    const { data } = matter(source);
-    return { ...(data as PostData), slug: slug.replace(/\.mdx$/, "") };
-  });
+  featured: number;
+  published: number;
 }
 
 export async function GET() {
@@ -42,9 +21,21 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const posts = readAllPosts().sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  const result = await db.execute(
+    "SELECT slug, title, date, excerpt, category, tags, coverImage, author, featured, published FROM posts ORDER BY date DESC"
   );
+
+  const posts = result.rows.map((row) => {
+    const r = row as unknown as PostRow;
+    return {
+      title: r.title,
+      slug: r.slug,
+      date: r.date,
+      category: r.category,
+      published: Boolean(r.published),
+      featured: Boolean(r.featured),
+    };
+  });
 
   return NextResponse.json({ posts });
 }
@@ -55,8 +46,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  ensureDir();
-
   const body = await request.json();
   const { title, slug, date, excerpt, category, tags, coverImage, author, featured, published, content } = body;
 
@@ -64,26 +53,31 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Title, slug, and content are required" }, { status: 400 });
   }
 
-  const filePath = path.join(postsDirectory, `${slug}.mdx`);
-  if (fs.existsSync(filePath)) {
+  const existing = await db.execute({
+    sql: "SELECT slug FROM posts WHERE slug = ?",
+    args: [slug],
+  });
+  if (existing.rows.length > 0) {
     return NextResponse.json({ error: "A post with this slug already exists" }, { status: 409 });
   }
 
-  const frontmatter = {
-    title,
-    slug,
-    date: date || new Date().toISOString().split("T")[0],
-    excerpt: excerpt || "",
-    category: category || "uncategorized",
-    tags: tags || [],
-    coverImage: coverImage || "/images/og-default.jpg",
-    author: author || "Lean Wealth Team",
-    featured: featured ?? false,
-    published: published ?? true,
-  };
-
-  const fileContent = matter.stringify(content, frontmatter);
-  fs.writeFileSync(filePath, fileContent, "utf8");
+  await db.execute({
+    sql: `INSERT INTO posts (slug, title, date, excerpt, category, tags, coverImage, author, featured, published, content)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [
+      slug,
+      title,
+      date || new Date().toISOString().split("T")[0],
+      excerpt || "",
+      category || "uncategorized",
+      JSON.stringify(tags || []),
+      coverImage || "/images/og-default.jpg",
+      author || "Lean Wealth Team",
+      featured ? 1 : 0,
+      published !== false ? 1 : 0,
+      content,
+    ],
+  });
 
   return NextResponse.json({ success: true, slug }, { status: 201 });
 }

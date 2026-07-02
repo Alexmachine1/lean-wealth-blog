@@ -24,12 +24,12 @@ export default async function BlogPage({
   const category = params.category || "";
   const currentPage = Number(params.page) || 1;
 
-  let posts = getAllPosts();
+  let posts = await getAllPosts();
 
   if (query) {
-    posts = searchPosts(query);
+    posts = await searchPosts(query);
   } else if (category) {
-    posts = getPostsByCategory(category);
+    posts = await getPostsByCategory(category);
   }
 
   const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);

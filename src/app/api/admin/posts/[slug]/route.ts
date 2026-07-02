@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
+import { db } from "@/lib/db";
 import { checkAuth } from "@/lib/admin";
-
-const postsDirectory = path.join(process.cwd(), "content", "posts");
 
 export async function GET(
   _request: Request,
@@ -16,16 +12,31 @@ export async function GET(
   }
 
   const { slug } = await params;
-  const filePath = path.join(postsDirectory, `${slug}.mdx`);
+  const result = await db.execute({
+    sql: "SELECT * FROM posts WHERE slug = ?",
+    args: [slug],
+  });
 
-  if (!fs.existsSync(filePath)) {
+  if (result.rows.length === 0) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
 
-  const source = fs.readFileSync(filePath, "utf8");
-  const { data, content } = matter(source);
-
-  return NextResponse.json({ frontmatter: data, content });
+  const row = result.rows[0] as any;
+  return NextResponse.json({
+    frontmatter: {
+      title: row.title,
+      slug: row.slug,
+      date: row.date,
+      excerpt: row.excerpt,
+      category: row.category,
+      tags: JSON.parse(row.tags || "[]"),
+      coverImage: row.coverImage,
+      author: row.author,
+      featured: Boolean(row.featured),
+      published: Boolean(row.published),
+    },
+    content: row.content,
+  });
 }
 
 export async function PUT(
@@ -38,30 +49,34 @@ export async function PUT(
   }
 
   const { slug } = await params;
-  const filePath = path.join(postsDirectory, `${slug}.mdx`);
-
-  if (!fs.existsSync(filePath)) {
+  const existing = await db.execute({
+    sql: "SELECT slug FROM posts WHERE slug = ?",
+    args: [slug],
+  });
+  if (existing.rows.length === 0) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
 
   const body = await request.json();
   const { title, date, excerpt, category, tags, coverImage, author, featured, published, content } = body;
 
-  const frontmatter = {
-    title: title || "",
-    slug,
-    date: date || new Date().toISOString().split("T")[0],
-    excerpt: excerpt || "",
-    category: category || "uncategorized",
-    tags: tags || [],
-    coverImage: coverImage || "/images/og-default.jpg",
-    author: author || "Lean Wealth Team",
-    featured: featured ?? false,
-    published: published ?? true,
-  };
-
-  const fileContent = matter.stringify(content || "", frontmatter);
-  fs.writeFileSync(filePath, fileContent, "utf8");
+  await db.execute({
+    sql: `UPDATE posts SET title = ?, date = ?, excerpt = ?, category = ?, tags = ?, coverImage = ?, author = ?, featured = ?, published = ?, content = ?, updated_at = datetime('now')
+          WHERE slug = ?`,
+    args: [
+      title || "",
+      date || new Date().toISOString().split("T")[0],
+      excerpt || "",
+      category || "uncategorized",
+      JSON.stringify(tags || []),
+      coverImage || "/images/og-default.jpg",
+      author || "Lean Wealth Team",
+      featured ? 1 : 0,
+      published !== false ? 1 : 0,
+      content || "",
+      slug,
+    ],
+  });
 
   return NextResponse.json({ success: true, slug });
 }
@@ -76,13 +91,18 @@ export async function DELETE(
   }
 
   const { slug } = await params;
-  const filePath = path.join(postsDirectory, `${slug}.mdx`);
-
-  if (!fs.existsSync(filePath)) {
+  const existing = await db.execute({
+    sql: "SELECT slug FROM posts WHERE slug = ?",
+    args: [slug],
+  });
+  if (existing.rows.length === 0) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
 
-  fs.unlinkSync(filePath);
+  await db.execute({
+    sql: "DELETE FROM posts WHERE slug = ?",
+    args: [slug],
+  });
 
   return NextResponse.json({ success: true });
 }

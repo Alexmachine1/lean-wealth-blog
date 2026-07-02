@@ -1,9 +1,5 @@
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
+import { db } from "@/lib/db";
 import readingTime from "reading-time";
-
-const postsDirectory = path.join(process.cwd(), "content", "posts");
 
 export interface PostFrontmatter {
   title: string;
@@ -24,62 +20,82 @@ export interface Post {
   readingTime: number;
 }
 
-function getSlugs(): string[] {
-  if (!fs.existsSync(postsDirectory)) return [];
-  return fs.readdirSync(postsDirectory);
+interface DbRow {
+  slug: string;
+  title: string;
+  date: string;
+  excerpt: string;
+  category: string;
+  tags: string;
+  coverImage: string;
+  author: string;
+  featured: number;
+  published: number;
+  content: string;
 }
 
-export function getPostBySlug(slug: string): Post | null {
-  const filePath = path.join(postsDirectory, `${slug}.mdx`);
-  if (!fs.existsSync(filePath)) return null;
-
-  const source = fs.readFileSync(filePath, "utf8");
-  const { data, content } = matter(source);
-  const time = readingTime(content);
-
+function rowToPost(row: DbRow): Post {
+  const time = readingTime(row.content);
   return {
     frontmatter: {
-      title: data.title,
-      slug: data.slug || slug,
-      date: data.date,
-      excerpt: data.excerpt || "",
-      category: data.category || "uncategorized",
-      tags: data.tags || [],
-      coverImage: data.coverImage || "",
-      author: data.author || "Lean Wealth Team",
-      featured: data.featured || false,
-      published: data.published ?? true,
+      title: row.title,
+      slug: row.slug,
+      date: row.date,
+      excerpt: row.excerpt || "",
+      category: row.category || "uncategorized",
+      tags: JSON.parse(row.tags || "[]"),
+      coverImage: row.coverImage || "",
+      author: row.author || "Lean Wealth Team",
+      featured: Boolean(row.featured),
+      published: Boolean(row.published),
     },
-    content,
+    content: row.content,
     readingTime: Math.ceil(time.minutes),
   };
 }
 
-export function getAllPosts(): Post[] {
-  const slugs = getSlugs();
-  const posts = slugs
-    .map((slug) => getPostBySlug(slug.replace(/\.mdx$/, "")))
-    .filter((post): post is Post => post !== null && post.frontmatter.published)
-    .sort((a, b) => new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime());
-
-  return posts;
+export async function getPostBySlug(slug: string): Promise<Post | null> {
+  const result = await db.execute({
+    sql: "SELECT * FROM posts WHERE slug = ?",
+    args: [slug],
+  });
+  if (result.rows.length === 0) return null;
+  return rowToPost(result.rows[0] as unknown as DbRow);
 }
 
-export function getFeaturedPosts(): Post[] {
-  return getAllPosts().filter((post) => post.frontmatter.featured);
+export async function getAllPosts(): Promise<Post[]> {
+  const result = await db.execute(
+    "SELECT * FROM posts WHERE published = 1 ORDER BY date DESC"
+  );
+  return result.rows.map((row) => rowToPost(row as unknown as DbRow));
 }
 
-export function getPostsByCategory(category: string): Post[] {
-  return getAllPosts().filter((post) => post.frontmatter.category === category);
+export async function getFeaturedPosts(): Promise<Post[]> {
+  const result = await db.execute(
+    "SELECT * FROM posts WHERE published = 1 AND featured = 1 ORDER BY date DESC"
+  );
+  return result.rows.map((row) => rowToPost(row as unknown as DbRow));
 }
 
-export function getRelatedPosts(currentSlug: string, limit = 3): Post[] {
-  const current = getPostBySlug(currentSlug);
+export async function getPostsByCategory(category: string): Promise<Post[]> {
+  const result = await db.execute({
+    sql: "SELECT * FROM posts WHERE published = 1 AND category = ? ORDER BY date DESC",
+    args: [category],
+  });
+  return result.rows.map((row) => rowToPost(row as unknown as DbRow));
+}
+
+export async function getRelatedPosts(
+  currentSlug: string,
+  limit = 3
+): Promise<Post[]> {
+  const current = await getPostBySlug(currentSlug);
   if (!current) return [];
 
-  const all = getAllPosts().filter((p) => p.frontmatter.slug !== currentSlug);
+  const all = await getAllPosts();
+  const others = all.filter((p) => p.frontmatter.slug !== currentSlug);
 
-  const related = all
+  const related = others
     .map((post) => {
       let score = 0;
       if (post.frontmatter.category === current.frontmatter.category) score += 3;
@@ -96,27 +112,23 @@ export function getRelatedPosts(currentSlug: string, limit = 3): Post[] {
   return related;
 }
 
-export function getAllCategories(): { category: string; count: number }[] {
-  const posts = getAllPosts();
-  const counts: Record<string, number> = {};
-
-  posts.forEach((post) => {
-    const cat = post.frontmatter.category;
-    counts[cat] = (counts[cat] || 0) + 1;
-  });
-
-  return Object.entries(counts).map(([category, count]) => ({
-    category,
-    count,
+export async function getAllCategories(): Promise<
+  { category: string; count: number }[]
+> {
+  const result = await db.execute(
+    "SELECT category, COUNT(*) as count FROM posts WHERE published = 1 GROUP BY category"
+  );
+  return result.rows.map((row: any) => ({
+    category: row.category as string,
+    count: row.count as number,
   }));
 }
 
-export function searchPosts(query: string): Post[] {
-  const q = query.toLowerCase();
-  return getAllPosts().filter(
-    (post) =>
-      post.frontmatter.title.toLowerCase().includes(q) ||
-      post.frontmatter.excerpt.toLowerCase().includes(q) ||
-      post.frontmatter.tags.some((t) => t.toLowerCase().includes(q))
-  );
+export async function searchPosts(query: string): Promise<Post[]> {
+  const pattern = `%${query}%`;
+  const result = await db.execute({
+    sql: "SELECT * FROM posts WHERE published = 1 AND (title LIKE ? OR excerpt LIKE ?)",
+    args: [pattern, pattern],
+  });
+  return result.rows.map((row) => rowToPost(row as unknown as DbRow));
 }

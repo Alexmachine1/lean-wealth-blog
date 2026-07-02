@@ -1,8 +1,8 @@
 import { getRelatedPosts } from "@/lib/posts";
 import PostCard from "@/components/blog/PostCard";
 
-export default function RelatedPosts({ currentSlug }: { currentSlug: string }) {
-  const posts = getRelatedPosts(currentSlug, 3);
+export default async function RelatedPosts({ currentSlug }: { currentSlug: string }) {
+  const posts = await getRelatedPosts(currentSlug, 3);
   if (posts.length === 0) return null;
 
   return (
